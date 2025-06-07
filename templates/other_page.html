@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ваши ответы</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        /* Общие стили таблицы */
+        .answer-block {
+            margin-bottom: 30px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch; /* Плавный скролл на iOS */
+        }
+
+        .question-list {
+            width: 100%;
+            min-width: 280px; /* Минимальная ширина для мобильных */
+        }
+
+        .question-item table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .question-item td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+
+        /* Стили для столбца с вопросом */
+        .question-item td:first-child {
+            width: 75%;
+            word-break: break-word; /* Жесткий перенос слов */
+            hyphens: auto; /* Перенос слов с дефисами */
+            padding-right: 10px;
+        }
+
+        /* Стили для столбца с ответом */
+        .question-item td:last-child {
+            width: 25%;
+            text-align: center;
+            min-width: 80px; /* Гарантирует место для слова "Иногда" */
+        }
+
+        /* Стили ответов */
+        .answer-value {
+            display: inline-block;
+            padding: 4px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 14px; /* Уменьшаем шрифт для мобильных */
+            white-space: nowrap; /* Запрещаем перенос текста в ответах */
+        }
+
+        /* Цвета для ответов */
+        .answer-value[data-answer="yes"] { background-color: #f8d7da; color: #721c24; }
+        .answer-value[data-answer="sometimes"] { 
+            background-color: #fff3cd; 
+            color: #856404;
+            padding: 4px 4px; /* Уменьшаем отступы для слова "Иногда" */
+        }
+        .answer-value[data-answer="no"] { background-color: #d4edda; color: #155724; }
+
+        /* Адаптация для маленьких экранов */
+        @media (max-width: 480px) {
+            .question-item td:first-child {
+                width: 70%;
+            }
+            .question-item td:last-child {
+                width: 30%;
+                min-width: 70px; /* Еще меньше для очень маленьких экранов */
+            }
+            .answer-value {
+                font-size: 13px;
+                padding: 3px 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ваши ответы</h1>
+        
+        <div class="user-info">
+            <p><a href="/other_pages" style="text-decoration: none; color: inherit;">Возраст: </a>{{ user_data.age }}</p>
+            <p>Пол: 
+                {% if user_data.gender == 'male' %}Мужской
+                {% elif user_data.gender == 'female' %}Женский
+                {% else %}Другой
+                {% endif %}
+            </p>
+        </div>
+        
+        {% for block, answers in user_data.answers.items() %}
+    <div class="answer-block">
+        <h2>{{ block }}</h2>
+        <div class="question-list">
+            {% for i in range(answers|length) %}
+            <div class="question-item">
+                <table>
+                    <tr>
+                        <td>{{ question_blocks[block][i] }}</td>
+                        <td>
+                            <span class="answer-value" data-answer="{{ answers[i] }}">
+                                {% if answers[i] == 'yes' %}Да
+                                {% elif answers[i] == 'sometimes' %}Иногда
+                                {% else %}Нет
+                                {% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+        
+        <div class="fuzzy-result">
+            <h2>Общий результат</h2>
+            {% if user_data.fuzzy_result and user_data.fuzzy_result.value is not none %}
+                <p>Оценка системы: {{ "%.2f"|format(user_data.fuzzy_result.value) }}/10</p>
+            {% else %}
+                <p>Оценка системы: не доступна</p>
+            {% endif %}
+        </div>
+        
+        <div class="action-buttons">
+            <a href="/" class="btn">Начать заново</a>
+            <a href="/result" class="btn">Вернуться к результатам</a>
+        </div>
+    </div>
+</body>
+</html>

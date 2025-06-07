@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>История результатов</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+            font-style: italic;
+            border: 1px dashed #ddd;
+            border-radius: 5px;
+        }
+        .results-section {
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Результаты тестирования</h1>
+
+        <!-- Блок с графиками -->
+        <div id="charts-section">
+            <h2>Визуализация данных</h2>
+
+            {% if results %}
+            <div class="chart-grid">
+                <!-- График 1: Линейный график динамики -->
+                <div class="chart-container">
+                    <h3>Динамика изменений</h3>
+                    <canvas id="trendChart"></canvas>
+                </div>
+
+                <!-- График 2: Круговая диаграмма распределения -->
+                <div class="chart-container">
+                    <h3>Распределение по уровням</h3>
+                    <canvas id="ratioChart"></canvas>
+                </div>
+
+                <!-- График 3: Столбчатая диаграмма сравнения (на всю ширину) -->
+                <div class="chart-container full-width" style="width: 95%;">
+                    <h3>Сравнение результатов</h3>
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+            </div>
+
+            <script>
+                // Безопасное получение данных
+                try {
+                    const chartData = JSON.parse('{{ chart_data|safe }}');
+                    const stats = JSON.parse('{{ stats|safe }}');
+
+                    // Линейный график (обратный порядок)
+                    if (chartData.dates && chartData.scores) {
+                        new Chart(document.getElementById('trendChart'), {
+                            type: 'line',
+                            data: {
+                                labels: chartData.dates.reverse(),
+                                datasets: [{
+                                    label: 'Уровень девиантности',
+                                    data: chartData.scores.reverse(),
+                                    borderColor: '#e74c3c',
+                                    backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                                    tension: 0.3
+                                }]
+                            },
+                            options: {
+                                scales: { y: { min: 0, max: 10 } }
+                            }
+                        });
+                    }
+
+                    // Круговая диаграмма
+                    if (chartData.levels) {
+                        new Chart(document.getElementById('ratioChart'), {
+                            type: 'pie',
+                            data: {
+                                labels: ['Критический', 'Высокий', 'Средний', 'Умеренный', 'Низкий', 'Крайне низкий'],
+                                datasets: [{
+                                    data: chartData.levels,
+                                    backgroundColor: [
+                                        "rgba(192, 57, 43, 0.7)",    // (Критический)
+                                        "rgba(231, 76, 60, 0.7)",    // (Высокий)
+                                        "rgba(230, 126, 34, 0.7)",   // (Средний)
+                                        "rgba(241, 196, 15, 0.7)",   // (Умеренный)
+                                        "rgba(39, 174, 96, 0.7)",    // (Низкий)
+                                        "rgba(46, 204, 113, 0.7)"    // (Крайне низкий)
+                                    ]
+                                }]
+                            }
+                        });
+                    }
+
+                    // Столбчатая диаграмма
+                    if (stats) {
+                        new Chart(document.getElementById('comparisonChart'), {
+                            type: 'bar',
+                            data: {
+                                labels: ['Минимальный', 'Максимальный', 'Средний'],
+                                datasets: [{
+                                    label: 'Уровень',
+                                    data: [stats.min, stats.max, stats.avg],
+                                    backgroundColor: [
+                                        'rgba(46, 204, 113, 0.7)',
+                                        'rgba(231, 76, 60, 0.7)',
+                                        'rgba(241, 196, 15, 0.7)'
+                                    ]
+                                }]
+                            },
+                            options: {
+                                scales: { y: { min: 0, max: 10 } }
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.error("Ошибка при обработке данных:", e);
+                    document.getElementById('charts-section').innerHTML = `
+                        <div class="error-alert">
+                            Ошибка при отображении графиков: ${e.message}
+                        </div>
+                    `;
+                }
+            </script>
+            {% else %}
+            <div class="no-data">
+                <p>Нет данных для отображения графиков</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Таблица результатов -->
+        <div class="results-section">
+            <h2>Детальная история тестирований</h2>
+            {% if results %}
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>Дата</th>
+                        <th>Возраст</th>
+                        <th>Пол</th>
+                        <th>Уровень</th>
+                        <th>Оценка</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in results %}
+                    <tr>
+                        <td>{{ result.date.strftime('%d.%m.%Y %H:%M') }}</td>
+                        <td>{{ result.age }}</td>
+                        <td>
+                            {% if result.gender == 'male' %}Мужской
+                            {% elif result.gender == 'female' %}Женский
+                            {% else %}Другой
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if result.deviance_level >= 8.5 %}
+                                <span class="level-high">Критический уровень</span>
+                            {% elif result.deviance_level >= 7 %}
+                                <span class="level-medium">Высокий уровень</span>
+                            {% elif result.deviance_level >= 5.5 %}
+                                <span class="level-medium">Средний уровень</span>
+                            {% elif result.deviance_level >= 4 %}
+                                <span class="level-medium">Умеренный уровень</span>
+                            {% elif result.deviance_level >= 2.5 %}
+                                <span class="level-medium">Низкий уровень</span>
+                            {% else %}
+                                <span class="level-low">Крайне низкий уровень</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ "%.2f"|format(result.deviance_level) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="no-data">
+                <p>Нет сохранённых результатов</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="action-buttons">
+            <a href="/" class="btn">На главную</a>
+        </div>
+    </div>
+</body>
+</html>

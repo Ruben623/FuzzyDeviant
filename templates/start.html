@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <!-- Подключение Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Опросник девиантности подростков</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .test-btn-container {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        .test-btn {
+            background-color: #95a5a6 !important;
+            width: 100%;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Опросник для определения уровня девиантности подростков</h1>
+        <form method="POST" class="start-form">
+            <div class="form-group">
+                <label for="age">Ваш возраст:</label>
+                <input type="number" id="age" name="age" min="10" max="18" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Ваш пол:</label>
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" name="gender" value="male" required>
+                        <span>Мужской</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="gender" value="female">
+                        <span>Женский</span>
+                    </label>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn">Начать опрос</button>
+
+                        
+            <div style="margin-top: 20px; text-align: center;">
+                <button type="submit" name="test_mode" class="btn" style="background-color: #00cf8a;">
+                    Тестовый вариант 
+                </button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
