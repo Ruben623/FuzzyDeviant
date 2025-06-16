@@ -20,7 +20,7 @@ migrate = Migrate(app, db)
 def get_moscow_time():
     return datetime.now(pytz.timezone('Europe/Moscow'))
 
-# Модель для хранения результатов (добавляем перед роутами)
+# Модель для хранения результатов
 class Result(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     age = db.Column(db.Integer)
@@ -241,14 +241,6 @@ def question():
 
 def get_level_description(score, max_score):
     percentage = (score / max_score) * 100
-    # levels = [
-    #     (85, "Критический уровень", "#c0392b"),     # 8.5-10 (темно-красный)
-    #     (70, "Высокий уровень", "#e74c3c"),         # 7-8.5 (красный)
-    #     (55, "Средний уровень", "#e67e22"),         # 5.5-7 (оранжевый)
-    #     (40, "Умеренный уровень", "#f1c40f"),       # 4-5.5 (желтый)
-    #     (25, "Низкий уровень", "#27ae60"),          # 2.5-4 (зеленый)
-    #     (0, "Крайне низкий уровень", "#2ecc71")     # 0-2.5 (светло-зеленый)
-    # ]
     levels = [
         (75, "Высокий уровень", "#e74c3c"),
         (50, "Средний уровень", "#e67e22"),
@@ -268,7 +260,7 @@ def result():
     max_scores = {block: len(questions) for block, questions in question_blocks.items()}
     results = []
 
-    # Расчет нечеткого вывода (только числовые данные)
+    # Расчет нечеткого вывода
     fuzzy_data = calculate_deviance(session['scores'], max_scores)
     
     # Сохраняем результаты в БД
@@ -297,10 +289,10 @@ def result():
             'color': color
         })
 
-    # Генерируем график непосредственно перед отображением
+    # Генерируем график
     combined_plot = generate_combined_plot(fuzzy_data['normalized_scores'])
     
-    # Сохраняем в сессии только необходимые данные (без графика)
+    # Сохраняем в сессии данные
     session['fuzzy_result'] = {
         'value': fuzzy_data['value'],
         'normalized_scores': fuzzy_data['normalized_scores']
@@ -309,7 +301,7 @@ def result():
     return render_template('result.html',
                          results=results,
                          fuzzy_result=session['fuzzy_result'],
-                         combined_plot=combined_plot,  # Передаем график напрямую
+                         combined_plot=combined_plot,  
                          gender=session.get('gender'),
                          age=session.get('age'))
 
@@ -318,7 +310,7 @@ def other_page():
     if 'answers' not in session:
         return redirect(url_for('start'))
     
-    # Используем только данные из сессии без графиков
+    # Используем данные из сессии
     user_data = {
         'gender': session.get('gender'),
         'age': session.get('age'),
